@@ -10,24 +10,30 @@ Repository-wide guidance for GitHub Copilot is in
 
 The repository includes a focused starter set adapted from Awesome Copilot:
 
-| Resource                                                                                             | Purpose                                                                                             |
-| ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| [Member Services Azure Architect](.github/agents/azure-principal-architect.agent.md)                 | Requirements discovery, Azure trade-offs, and design review without application code or deployment. |
-| [Member Services Technical Writer](.github/agents/technical-writer.agent.md)                         | Accurate architecture explanations, developer guides, and API documentation.                        |
-| [Create Architectural Decision Record](.github/skills/create-architectural-decision-record/SKILL.md) | Record one proposed decision, alternatives, consequences, and review evidence.                      |
-| [Documentation Writer](.github/skills/documentation-writer/SKILL.md)                                 | Audience-focused tutorials, how-to guides, reference, and explanation.                              |
-| [Architecture instructions](.github/instructions/architecture.instructions.md)                       | Constitution-first discovery and decision boundaries.                                               |
-| [Documentation instructions](.github/instructions/documentation.instructions.md)                     | Documentation accuracy, consistency, privacy, and maintenance.                                      |
+| Resource                                                                                             | Purpose                                                                                              |
+| ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| [Member Services Planning Agent](.github/agents/planning.agent.md)                                   | Collaborative requirements and repository exploration, alternatives, risks, and handoff to Spec Kit. |
+| [Member Services Azure Architect](.github/agents/azure-principal-architect.agent.md)                 | Requirements discovery, Azure trade-offs, and design review without application code or deployment.  |
+| [Member Services Technical Writer](.github/agents/technical-writer.agent.md)                         | Accurate architecture explanations, developer guides, and API documentation.                         |
+| [Create Architectural Decision Record](.github/skills/create-architectural-decision-record/SKILL.md) | Record one proposed decision, alternatives, consequences, and review evidence.                       |
+| [Documentation Writer](.github/skills/documentation-writer/SKILL.md)                                 | Audience-focused tutorials, how-to guides, reference, and explanation.                               |
+| [Architecture instructions](.github/instructions/architecture.instructions.md)                       | Constitution-first discovery and decision boundaries.                                                |
+| [Documentation instructions](.github/instructions/documentation.instructions.md)                     | Documentation accuracy, consistency, privacy, and maintenance.                                       |
 
 In a Copilot client that supports repository custom agents, select **Member
-Services Azure Architect** for design discussions or **Member Services Technical
-Writer** for documentation. Ask for the named skill when recording a decision
+Services Planning Agent** for collaborative exploration before formal planning,
+**Member Services Azure Architect** for design discussions, or **Member Services
+Technical Writer** for documentation. Ask for the named skill when recording a decision
 or writing a substantial guide. Availability and discovery depend on the client;
 if a resource is not listed, refresh the session or explicitly reference its
 file. Do not assume that installing these files configures any MCP server.
 
 Example requests:
 
+- "Use Member Services Planning Agent to explore this request and the relevant
+  repository context. Clarify unknowns, compare alternatives, and identify
+  dependencies, risks, acceptance-test strategy, and human decisions before
+  handing off to Spec Kit. Do not implement or assume approval."
 - "Explore the member-profile architecture with me. Start with requirements and
   open questions; do not generate code or an implementation plan."
 - "Use create-architectural-decision-record to capture this proposed decision,
@@ -42,6 +48,13 @@ plan and tasks**.
 Document the proposed architecture and decision rationale before human review;
 keep ADRs **Proposed** until the required approval is recorded.
 Exploration does not bypass spec approval or other constitutional gates.
+
+The planning agent supports exploration and review inputs; it does not replace
+`/speckit-plan` or `/speckit-tasks`. Those remain the authoritative workflows for
+implementation plans and tasks in `specs/<feature>/`, used only when requested
+and applicable review gates are satisfied. No parallel `/plan/` or
+`.copilot-tracking/` workflow is introduced. The agent does not implement
+application code, install application dependencies, deploy, or self-approve.
 
 The current member-profile design is a proposal and is maintained in the
 [architecture overview](docs/architecture/member-profile-overview.md) and
