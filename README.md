@@ -49,6 +49,9 @@ The current member-profile design is a proposal and is maintained in the
 confirmed requirements from open decisions; neither represents an approved or
 implemented system.
 
+The [initial demo specification](specs/002-member-profile-demo/spec.md) is a
+draft awaiting product owner and tech lead review.
+
 Substantial new documentation starts with an approved outline; small corrections
 to existing documents do not require a separate outline.
 
@@ -145,8 +148,8 @@ not checks these foundation workflows have passed. See the
 
 ## Technology stack
 
-The frontend is implemented in Angular with TypeScript. The backend is implemented
-in C# using .NET 11, hosted on Azure Functions and Container Apps as appropriate
+The planned frontend uses Angular with TypeScript. The planned backend uses
+C# and .NET 11, hosted on Azure Functions and Container Apps as appropriate
 to the approved design. Use Azure SQL for data and Bicep for infrastructure as code.
 Record the Angular version and compatible toolchain in the implementation plan.
 
