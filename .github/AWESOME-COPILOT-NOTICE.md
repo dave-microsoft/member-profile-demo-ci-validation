@@ -19,10 +19,24 @@ The following repository customizations are adapted from
 | `instructions/security.instructions.md`                | [Security and OWASP instructions](https://github.com/github/awesome-copilot/blob/222eba62d518c27317e917c92e3ec1a7e6729455/instructions/security-and-owasp.instructions.md)           |
 | `instructions/accessibility.instructions.md`           | [Accessibility instructions](https://github.com/github/awesome-copilot/blob/222eba62d518c27317e917c92e3ec1a7e6729455/instructions/a11y.instructions.md)                              |
 
+The planning agent is adapted from the separately verified upstream revision
+`dc0083dbe22133bfa7ce3500dee85e187e0cd47a`:
+
+| Local file                 | Upstream source                                                                                                                                               |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `agents/planning.agent.md` | [Plan Mode - Strategic Planning & Architecture](https://github.com/github/awesome-copilot/blob/dc0083dbe22133bfa7ce3500dee85e187e0cd47a/agents/plan.agent.md) |
+
 Local adaptations align these resources with the project constitution, Spec Kit
 approval gates, existing tools, privacy requirements, and a single ADR format.
 Model pins and obsolete tool lists were removed. The architecture and
 documentation instruction files are project-specific guidance.
+
+The planning adaptation retains collaborative repository exploration,
+requirements clarification, alternatives, dependencies, risks, and test-strategy
+discussion. It removes client-specific tool assumptions and keeps formal planning
+and task artifacts in the existing Spec Kit workflows. It adds explicit human
+review and no-implementation boundaries rather than a parallel planning system.
+The source file and MIT license were inspected at the pinned revision above.
 
 Implementation/review adaptations remove automatic package installation and
 unapproved architecture choices, preserve .NET 11 and Spec Kit gates, narrow
