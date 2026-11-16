@@ -70,9 +70,14 @@ A failed comparison fails the job instead of silently selecting nothing. Manual
 runs evaluate tracked paths. Runtime code selects application validation; Bicep
 selects infrastructure; shared contracts, tests, and common configuration select
 both. Workflow-specific configuration selects its own domain. Repository
-formatting, documentation checks, and tooling tests run once in application CI,
-including on documentation-only changes. No workflow path filters leave these
-result jobs pending.
+formatting, documentation checks, and tooling tests run once in application CI
+only for changes under `src/`, `tests/unit/`, `.github/scripts/`, `.github/ci/`,
+the application workflow, or root non-Markdown configuration files (excluding
+`LICENSE`). Documentation-only, infrastructure-only, and isolated integration or
+contract-test changes skip npm restore, lint/link checks, tooling tests, and audit.
+Domain-readiness checks remain active, so missing project validation still blocks
+relevant domain changes. Documentation checks remain available locally through
+`npm run lint`. No workflow path filters leave the result jobs pending.
 
 Angular/.NET build/test and Bicep validation currently report **not implemented**,
 with prerequisites. An affected domain containing runtime/infrastructure files

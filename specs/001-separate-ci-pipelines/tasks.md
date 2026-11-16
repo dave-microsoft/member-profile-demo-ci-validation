@@ -103,3 +103,12 @@ the results. The owned validation process was stopped, not recorded as a passing
 final `npm run lint` exit. The earlier application-entrypoint run did finish lint
 before failing audit. T006/T007 must verify real terminal outcomes; no Node.js 22
 hosted result is inferred from this local behavior. Syntax and diff checks pass.
+
+## Phase 8: User-Directed CI Latency Correction
+
+- [x] T009 Gate expensive tooling in `.github/scripts/ci-foundation.mjs` on source/unit-test or supporting configuration changes; retain lightweight terminal checks, add docs-only invocation and routing regressions in `tests/unit/tooling/ci-foundation.test.mjs`, and align README, tooling guidance, spec, plan, and quickstart with the 2026-11-16 clarification (FR-003, FR-004, SC-002). Depends on completed T003/T004. [Issue](https://github.com/dmd0822/member-profile-demo/issues/15).
+
+T009 evidence: two regression tests failed before the fix. All 13 combined
+tooling tests now pass, including a real docs-only entrypoint invocation in a
+temporary Git repository with no package files. Markdown lint, formatting, and
+diff checks pass. No hosted timing claim or full external-link/audit rerun is made.
