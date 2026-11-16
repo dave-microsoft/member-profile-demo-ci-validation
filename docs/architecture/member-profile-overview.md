@@ -4,6 +4,22 @@
 for review. It does not describe an implemented or approved system. Update it as
 requirements are clarified and decisions are reviewed.
 
+**Planning status (2026-11-16):** The user acting as product owner and tech lead
+approved both feature specifications for planning only. See the proposed
+[002 demo plan](../../specs/002-member-profile-demo/plan.md) and
+[003 initial-project plan](../../specs/003-initial-app-projects/plan.md).
+This does not approve architecture, security, implementation, or deployment;
+applicable human design, security, and privacy reviews remain pending.
+
+**Demo scope clarification:** The [demo research](../../specs/002-member-profile-demo/research.md)
+proposes committing business changes and required internal audit records in the
+same SQL transaction. Queue/central-audit delivery and its worker below remain
+a separately reviewed direction, not required or approved demo scope. The plan
+proposes server-only telemetry with Entra-authenticated ingestion and local
+authentication disabled: the Application Insights JavaScript SDK does not
+support Entra-authenticated ingestion. Browser telemetry arrows in this proposal
+do not authorize direct browser ingestion or a workaround.
+
 ## Purpose and audience
 
 This explanation is for product, architecture, security, and engineering
@@ -48,7 +64,7 @@ trade-offs.
 | API                            | The web application is the initial API consumer. Other systems may consume a versioned API in the future.                                                                                                                                                                 |
 | Demo and production            | The initial demo uses synthetic data. Production targets South Central US with its paired US region available for recovery. Initial production recovery objectives are roughly two hours for both restoration time and data loss.                                         |
 
-The draft demo specification also requires keyboard-operable workflows, labeled
+The demo specification also requires keyboard-operable workflows, labeled
 fields, and clear text errors; it does not claim accessibility certification.
 
 ## Proposed system boundary

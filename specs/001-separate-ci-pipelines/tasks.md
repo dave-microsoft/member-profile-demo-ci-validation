@@ -5,6 +5,12 @@
 
 **GitHub Milestone**: <https://github.com/dmd0822/member-profile-demo/milestone/1>
 
+Tracking verified read-only on 2026-11-16: all nine existing task issues are
+assigned to milestone 1. T006/T007/T008 remain open; T001–T005 and T009 are
+closed. Reuse these issues and statuses; no GitHub mutation was performed.
+The [merged task artifact](https://github.com/dmd0822/member-profile-demo/blob/main/specs/001-separate-ci-pipelines/tasks.md)
+is the main-branch tracking reference.
+
 **Tests**: Acceptance-based tests fail before implementation, as required by the
 constitution. No runtime projects, public APIs, or deployment contracts exist.
 
@@ -45,11 +51,12 @@ commands; verify no deployment or cloud-authentication route exists.
 
 ## Phase 6: Polish and Cross-Cutting Validation
 
-- [ ] T006 Run focused tests, existing tooling, YAML semantics, registry-portability checks, and convergence; record actual evidence and unresolved hosted validation in `specs/001-separate-ci-pipelines/tasks.md` and `quickstart.md`. Depends on T003, T004, and T005. [Issue](https://github.com/dmd0822/member-profile-demo/issues/9).
+- [ ] T006 Run focused tests, existing tooling, YAML semantics, registry-portability checks, and convergence; record actual evidence and unresolved hosted validation in `specs/001-separate-ci-pipelines/tasks.md` and `quickstart.md`. Depends on T003, T004, T005, T007, and T008, matching issue #9 and the existing convergence blockers. [Issue](https://github.com/dmd0822/member-profile-demo/issues/9).
 
 ## Dependencies and Execution Order
 
-T001 -> T002 -> T003 / T004 -> T005 -> T006.
+T001 -> T002 -> T003 / T004 -> T005 -> T007 -> T006.
+T004 -> T008 -> T006; T006 also retains T003/T004/T005 as prerequisites.
 T003 and T004 have the same prerequisite but share a helper and are implemented
 sequentially. No task is marked parallel-safe merely because it appears nearby.
 US1 routing can be tested independently of US2 dependency retrieval. US3 describes
@@ -67,14 +74,16 @@ No separate implementation workers or speculative workstreams are needed.
 Complete governance reconciliation and observe red tests first. Deliver US1's
 minimal separated checks, integrate US2 before executing any restore, then
 document US3 and validate. No deployment occurs at any checkpoint. Track hosted
-execution and branch-protection setup as unresolved until actually observed.
+scenario coverage and branch-protection setup as unresolved until actually
+observed; the partial hosted evidence below does not complete T007.
 
 ## Validation Evidence and Blockers
 
 - T002: initial focused test execution failed because the helper did not exist.
   Workspace/lock-alias rejection cases subsequently failed before their guard
-  fixes. The final focused suite passes all eight tests; the combined tooling
-  suite passes all twelve.
+  fixes. At that earlier validation checkpoint, the focused suite passed eight
+  tests and the combined tooling suite passed twelve. These are historical
+  results, not a new test run; the later T009 checkpoint records 13 combined tests.
 - T003/T004: the infrastructure entrypoint succeeds without cloud access. The
   application entrypoint restores 77 packages through local internal npm and
   passes tooling tests, Markdown lint, formatting, and external/local link checks.
@@ -87,10 +96,17 @@ execution and branch-protection setup as unresolved until actually observed.
 - T006 remains open: the local approved-feed audit initially failed DNS and then
   returned HTTP 429 on a bounded recheck. No public-registry fallback was used.
   The application entrypoint correctly fails instead of claiming audit success.
-- Hosted Actions execution, Node.js 22 runner behavior, public-registry retrieval,
-  fork permissions, and required-check configuration have not been observed.
-  Local commands ran on the available Node.js 26 runtime; no Node.js 22 result is
-  claimed. No deployment or branch-protection changes occurred.
+- PARTIAL hosted evidence verified read-only on 2026-11-16: the
+  [Application CI run](https://github.com/dmd0822/member-profile-demo/actions/runs/43913848561)
+  and [Infrastructure CI run](https://github.com/dmd0822/member-profile-demo/actions/runs/43913848563)
+  are completed/successful `main` push runs at commit
+  `459188c3fa60c47b90c27fd8f351aca145dc54d8`. Their respective
+  **Application CI result** and **Infrastructure CI result** jobs completed
+  successfully. This confirms terminal jobs for those runs only; it does not
+  complete T007's scenario matrix or establish Node.js 22 runtime behavior,
+  public-registry retrieval, fork permissions, or required-check configuration.
+  Historical local commands used Node.js 26. No deployment or branch-protection
+  changes occurred.
 
 ## Phase 7: Convergence
 
@@ -101,14 +117,18 @@ Post-convergence local recheck: Markdown lint and formatting passed; the link
 checker reported zero failed links but its Node.js 26 process did not exit after
 the results. The owned validation process was stopped, not recorded as a passing
 final `npm run lint` exit. The earlier application-entrypoint run did finish lint
-before failing audit. T006/T007 must verify real terminal outcomes; no Node.js 22
-hosted result is inferred from this local behavior. Syntax and diff checks pass.
+before failing audit. The later hosted terminal-job evidence above does not
+resolve this historical local result or complete T006/T007; no Node.js 22
+hosted result is inferred from local behavior. Syntax and diff checks passed
+at that checkpoint.
 
 ## Phase 8: User-Directed CI Latency Correction
 
 - [x] T009 Gate expensive tooling in `.github/scripts/ci-foundation.mjs` on source/unit-test or supporting configuration changes; retain lightweight terminal checks, add docs-only invocation and routing regressions in `tests/unit/tooling/ci-foundation.test.mjs`, and align README, tooling guidance, spec, plan, and quickstart with the 2026-11-16 clarification (FR-003, FR-004, SC-002). Depends on completed T003/T004. [Issue](https://github.com/dmd0822/member-profile-demo/issues/15).
 
-T009 evidence: two regression tests failed before the fix. All 13 combined
-tooling tests now pass, including a real docs-only entrypoint invocation in a
+Historical T009 evidence (2026-11-16): two regression tests failed before the fix.
+All 13 combined tooling tests passed, including a real docs-only entrypoint invocation in a
 temporary Git repository with no package files. Markdown lint, formatting, and
-diff checks pass. No hosted timing claim or full external-link/audit rerun is made.
+diff checks passed at that checkpoint. No hosted timing claim or full
+external-link/audit rerun was made. This documentation update did not rerun
+those tests or clear T006/T007/T008.

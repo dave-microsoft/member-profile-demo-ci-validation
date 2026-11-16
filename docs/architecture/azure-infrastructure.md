@@ -5,6 +5,22 @@ approved deployment plan. It describes application-owned Azure resources and
 their dependencies on an established landing zone. It does not create Bicep,
 provision Azure resources, or authorize deployment.
 
+**Planning status (2026-11-16):** The user acting as product owner and tech lead
+approved both feature specifications for planning only. See the proposed
+[002 demo plan](../../specs/002-member-profile-demo/plan.md) and
+[003 initial-project plan](../../specs/003-initial-app-projects/plan.md).
+Design and applicable security/privacy reviews remain pending; planning approval
+does not approve this infrastructure direction, implementation, or deployment.
+
+**Demo scope clarification:** The [demo research](../../specs/002-member-profile-demo/research.md)
+proposes internal audit in the same SQL transaction as the business change.
+The queue, central audit service, and delivery worker described below remain a
+separately reviewed direction, not required or approved demo scope. The demo
+plan proposes server-only Entra-authenticated telemetry with local authentication
+disabled because the Application Insights JavaScript SDK does not support
+Entra-authenticated ingestion. Any browser telemetry arrow below is not an
+approved ingestion path; no direct browser telemetry workaround is permitted.
+
 ## Purpose and scope
 
 This document focuses on hosting the member-profile application and its

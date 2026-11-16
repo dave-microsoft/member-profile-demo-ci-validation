@@ -63,8 +63,11 @@ data details in the [infrastructure design](docs/architecture/azure-infrastructu
 These documents separate confirmed requirements from open decisions; none
 represents an approved or implemented system.
 
-The [initial demo specification](specs/002-member-profile-demo/spec.md) is a
-draft awaiting product owner and tech lead review.
+The [initial demo specification](specs/002-member-profile-demo/spec.md) and
+[initial application projects specification](specs/003-initial-app-projects/spec.md)
+received product owner and tech lead approval for planning on 2026-11-16.
+Their technical designs remain proposed; planning does not authorize
+implementation, dependency introduction, infrastructure changes, or deployment.
 
 Substantial new documentation starts with an approved outline; small corrections
 to existing documents do not require a separate outline.
@@ -223,3 +226,16 @@ Keep scope, dependencies, and completion status aligned between the feature
 artifacts and GitHub. Reuse existing milestones and issues to avoid duplicates,
 and report permission or access blockers rather than claiming synchronization
 succeeded. See the constitution for the full tracking requirements.
+
+The current feature backlog is organized as follows:
+
+| Feature                          | Plan and tasks                                                                                     | GitHub milestone                                                               | Delivery boundary                                                                             |
+| -------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| 001 Separate CI foundation       | [Plan](specs/001-separate-ci-pipelines/plan.md), [tasks](specs/001-separate-ci-pipelines/tasks.md) | [CI foundation](https://github.com/dmd0822/member-profile-demo/milestone/1)    | Existing implementation; hosted validation and approved-feed audit work remain open           |
+| 003 Initial application projects | [Plan](specs/003-initial-app-projects/plan.md), [tasks](specs/003-initial-app-projects/tasks.md)   | [Initial projects](https://github.com/dmd0822/member-profile-demo/milestone/2) | Proposed two-project foundation, external tests, independent builds and truthful CI           |
+| 002 Member profile demo          | [Plan](specs/002-member-profile-demo/plan.md), [tasks](specs/002-member-profile-demo/tasks.md)     | [Member demo](https://github.com/dmd0822/member-profile-demo/milestone/3)      | Complete eight-story synthetic demo after the foundation and required design/security reviews |
+
+Plan 003 before implementing dependent 002 work; do not duplicate initial
+scaffolding in the demo. Each task links its issue and states its prerequisites.
+All new implementation tasks remain open, with human review gates explicit.
+No due dates, deployment schedule, or production-readiness claim is implied.

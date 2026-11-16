@@ -36,6 +36,9 @@
 - The expected peak workload is not yet known. Before performance validation,
   agree on it with the product owner and record its basis in the implementation
   plan; do not invent an estimate.
-- Product owner and tech lead specification review, and applicable security and
-  privacy reviews, remain outstanding. Identity-provider feasibility and the
+- On 2026-11-16, the user acting as product owner and tech lead explicitly
+  approved both 002 Member Profile Demo and 003 Initial Application Projects
+  for planning; the exact approval is recorded in the [specification](../spec.md).
+  This does not authorize implementation or deployment. Design, security, and
+  privacy reviews remain pending; identity-provider feasibility and the
   explicitly excluded production decisions remain open.
