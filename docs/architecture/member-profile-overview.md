@@ -13,8 +13,10 @@ deployment plan, API contract, or Spec Kit implementation plan.
 
 ## Scope and design status
 
-The initial demo uses synthetic data. The target production design must support
-real member information and account-to-profile authorization. The workflow
+The [initial demo specification](../../specs/002-member-profile-demo/spec.md)
+covers the complete initial demo: enrollment, profiles, staff, and memberships.
+The demo uses synthetic data. The target production design must support real
+member information and account-to-profile authorization. The workflow
 integration described here is simulated for the demo; no ticketing product or
 production integration has been selected.
 
@@ -29,17 +31,20 @@ load.
 | Area                           | Requirement                                                                                                                                                                                                                                                               |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | User experience                | One public web application with member and staff-specific screens.                                                                                                                                                                                                        |
-| Member access                  | A member can access only their own profile. Before staff verifies the account-to-profile link, the member can see only their own submitted enrollment details and cannot edit the profile.                                                                                |
+| Member access                  | A member can access only their own profile. Before staff verifies the account-to-profile link, the member can see only their own submitted enrollment details and cannot edit the profile. The demo requires email one-time-code sign-in.                                 |
 | Staff access                   | Staff sign in with organization-managed Microsoft Entra accounts. Membership in a designated Entra group grants staff access to create, read, and update all profiles.                                                                                                    |
-| Enrollment                     | Members can start enrollment. Staff verification can link an enrollment to a staff-created profile or approve creation of a new profile. The demo enrollment process is simulated.                                                                                        |
-| Profile data                   | Name, email, phone, date of birth, and mailing address. Whether members under 18 are in scope is unknown.                                                                                                                                                                 |
-| Memberships                    | A member can have multiple memberships. Each membership has an application-generated number, type, status, and start and end dates. Type and status values remain open. Ended memberships remain as history.                                                              |
-| Updates                        | Verified members can update contact information directly. Membership changes are submitted through the application, reviewed through a separate process, and their status or outcome may be shown in the application. Staff apply approved changes through staff screens. |
-| Profile identifiers and search | The application generates a member number and a separate number for each membership. Staff need to search by member number, membership number, name, and email. A number is a lookup aid, not proof of identity.                                                          |
+| Enrollment                     | Demo enrollment collects name, contact email, phone, date of birth, and mailing address. Staff verification can link an enrollment to a staff-created profile or approve creation of a new profile.                                                                       |
+| Profile data                   | Name, contact email, phone, date of birth, and mailing address. Contact email is separate from sign-in email; changing it does not change sign-in. Whether members under 18 are in scope is unknown.                                                                      |
+| Memberships                    | Members can have multiple memberships, each with a generated number, type, status, and required start date. An optional end date cannot precede it. Demo types and statuses may be placeholders; production definitions remain open. Ended memberships remain as history. |
+| Updates                        | Verified members directly edit only contact email, phone, and mailing address; staff handle name and date of birth. Staff manually record simulated external review approval or rejection and apply approved membership changes; members see request status and outcome.  |
+| Profile identifiers and search | The application generates a member number and a separate number for each membership. Staff need to search by member number, membership number, name, and email. A number or email alone does not establish profile ownership.                                             |
 | Data ownership                 | The application is the source of truth for profile and membership data.                                                                                                                                                                                                   |
 | Audit                          | Internal audit records capture who changed what, when, and the outcome. They do not need before-and-after profile values.                                                                                                                                                 |
 | API                            | The web application is the initial API consumer. Other systems may consume a versioned API in the future.                                                                                                                                                                 |
 | Demo and production            | The initial demo uses synthetic data. Production targets South Central US with its paired US region available for recovery. Initial production recovery objectives are roughly two hours for both restoration time and data loss.                                         |
+
+The draft demo specification also requires keyboard-operable workflows, labeled
+fields, and clear text errors; it does not claim accessibility certification.
 
 ## Proposed system boundary
 
@@ -61,42 +66,46 @@ flowchart LR
 
 ### Identity and authorization
 
-Passwordless email one-time-code sign-in is the member preference. Microsoft
-Entra External ID is a candidate for customer identity, not an accepted
-selection. Its exact passwordless flow, configuration, and data-location
-implications must be verified before that choice is made. Staff use workforce
-Entra ID, with a designated group controlling staff access.
+The initial demo requires member sign-in using an email one-time code; the
+member identity provider remains unselected. Microsoft Entra External ID is a
+candidate for customer identity, not an accepted selection. Its exact
+passwordless flow, configuration, and data-location implications must be
+verified before that choice is made. Staff use workforce Entra ID, with a
+designated group controlling staff access.
 
 The API, not the browser, must enforce authorization on every request. It must
 derive a verified member's profile association from trusted identity data and
-allow access only to that member's profile. The membership number, member
-number, and email are not sufficient proof to claim a profile. Staff verification
-is required before linking an external account to a profile or granting access
-to full profile data.
+allow access only to that member's profile. A member number, membership number,
+or email address is not proof of account-to-profile ownership. Staff
+verification is required before linking an external account to a profile or
+granting access to full profile data.
 
-Pending members may view only their own enrollment details. The account-to-
-profile matching and verification experience is intentionally not finalized;
-the demo may simulate it, but production must have a reviewed, secure process.
+Pending members may view only their own submitted enrollment details. The
+account-to-profile matching and verification experience is intentionally not
+finalized; the demo simulates it, but production must have a reviewed, secure
+process.
 
 ### Data and workflows
 
 The following entities are conceptual and do not define a database schema:
 
 - **Member:** generated member number and contact details.
-- **Membership:** generated membership number, type, status, and dates; a member
-  may have multiple memberships, including ended records.
+- **Membership:** generated membership number, type, status, a required start
+  date, and an optional end date that cannot precede it; a member may have
+  multiple memberships, including ended records.
 - **Enrollment:** member-submitted enrollment information and its verification
   state.
-- **Membership change request:** a member-submitted request and the status or
-  outcome visible to that member.
+- **Membership change request:** a member-submitted request, its status, and
+  any recorded outcome visible to the requesting member.
 - **Audit event:** actor, operation or changed fields, timestamp, and outcome;
   exclude profile values and other unnecessary personal data.
 
-For membership changes, the application records the request, while review
-occurs through a separate process. The demo simulates the handoff. The eventual
-ticketing system, its integration contract, and how final review outcomes are
-returned remain open. Staff apply approved membership changes in the
-application. The exact status-update workflow for the demo also remains open.
+In the proposed demo, the application records membership-change requests. Staff
+manually record approval or rejection from the simulated external review and
+apply only approved changes through staff screens. The requesting member can see
+the request status and any recorded outcome. The eventual production ticketing
+system, its integration contract, and how final review outcomes are returned
+remain open.
 
 Inactive profiles and ended membership records are retained. The retention
 period is not yet defined. Legal and privacy review is needed before setting a
@@ -155,9 +164,9 @@ the constitution's US-only constraint requires its amendment process.
 
 See the [design review](design-review.md) for options and review prompts. Major
 open items include API and frontend hosting, exact member identity flow,
-enrollment verification details, membership types and statuses, ticketing
-integration, API consumer authorization, expected load, availability, budget,
-retention, minor-member handling, and international residency.
+enrollment verification details, production membership types and statuses,
+ticketing integration, API consumer authorization, expected load, availability,
+budget, retention, minor-member handling, and international residency.
 
 ## References
 
