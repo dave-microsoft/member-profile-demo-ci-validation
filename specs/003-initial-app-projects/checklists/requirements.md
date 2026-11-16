@@ -36,6 +36,8 @@
   beyond the constitutional stack.
 - Checklist items assess specification quality, not implemented projects or
   passing builds/tests. Outcome evidence is pending implementation.
-- Product owner and tech lead review are required before planning or
-  implementation. The existing member-profile feature remains separately
-  subject to its own review.
+- On 2026-11-16, the user acting as product owner and tech lead explicitly
+  approved both 002 Member Profile Demo and 003 Initial Application Projects
+  for planning; the exact approval is recorded in the [specification](../spec.md).
+  This does not authorize implementation or deployment. Design and applicable
+  security, privacy, accessibility, and architecture reviews remain pending.

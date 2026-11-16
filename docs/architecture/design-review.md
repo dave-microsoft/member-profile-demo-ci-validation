@@ -4,6 +4,20 @@
 architecture, product, security, and operations review. No option below is an
 accepted or implemented decision.
 
+**Planning status (2026-11-16):** The user acting as product owner and tech lead
+approved both feature specifications for planning only. The
+[002 demo plan](../../specs/002-member-profile-demo/plan.md) and
+[003 initial-project plan](../../specs/003-initial-app-projects/plan.md) remain
+proposed, not design or security approvals or authorization to implement or deploy.
+
+For the scoped demo proposal, see [demo research](../../specs/002-member-profile-demo/research.md):
+business changes and required internal audit records share one SQL transaction;
+queue/central-audit delivery and its worker remain a separately reviewed direction,
+not required or approved demo scope. Telemetry is proposed server-only because
+the Application Insights JavaScript SDK does not support Entra-authenticated
+ingestion. No direct browser telemetry workaround or local authentication is
+permitted.
+
 For current requirements and the conceptual system boundary, see the
 [architecture overview](member-profile-overview.md).
 
@@ -157,7 +171,8 @@ and [Azure SQL business continuity guidance](https://learn.microsoft.com/en-us/a
 
 ## Review status
 
-All design directions in this document remain proposed. Product, architecture,
-security, privacy, and operations reviews are still needed as applicable. This
-document does not authorize application scaffolding, implementation planning,
-infrastructure deployment, or a Spec Kit workflow step.
+All design directions in this document remain proposed. Product owner and tech
+lead specification approval for planning is recorded above; applicable human
+design, architecture, security, privacy, and operations reviews remain pending.
+This document grants no additional Spec Kit authorization and does not authorize
+application scaffolding, implementation, or infrastructure deployment.

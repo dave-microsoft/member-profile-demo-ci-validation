@@ -6,6 +6,13 @@
 
 **GitHub Milestone**: <https://github.com/dmd0822/member-profile-demo/milestone/1>
 
+Tracking verified read-only on 2026-11-16: reuse milestone 1 and the existing
+T001–T009 issues in [tasks](tasks.md). T006/T007/T008 remain open; the other
+tasks are closed. Merged artifact references:
+[spec on main](https://github.com/dmd0822/member-profile-demo/blob/main/specs/001-separate-ci-pipelines/spec.md)
+and [plan on main](https://github.com/dmd0822/member-profile-demo/blob/main/specs/001-separate-ci-pipelines/plan.md).
+No GitHub changes were made by this documentation update.
+
 ## Summary
 
 Create separate, read-only application and infrastructure CI workflows. Both
@@ -64,11 +71,12 @@ Pre-research and post-design review use the same scoped findings:
 | V. Observability          | Pass for tooling scope | Explicit check outcomes and job summaries; no member state changes or Application Insights runtime introduced.                                                                   |
 | VI. Simplicity            | Pass                   | Two single-job workflows and built-in Node helper; no reusable-workflow framework or speculative projects.                                                                       |
 | VII. Responsible AI       | Pass / not applicable  | No member-facing AI feature.                                                                                                                                                     |
-| VIII. Documentation       | Pass by design         | Synchronize adopted registry policy and document actual capabilities, limitations, and future activation.                                                                        |
+| VIII. Documentation       | Pass for tooling scope | T001 reconciled registry guidance; T005 documented actual capabilities, limitations, and future activation.                                                                      |
 
-Dependency policy follows merged [PR #4](https://github.com/dmd0822/member-profile-demo/pull/4);
-reconcile its stale proposal metadata before implementation. Preserve approved
-internal feeds for private/non-npm packages, lock integrity, and license reviews.
+Dependency policy follows merged [PR #4](https://github.com/dmd0822/member-profile-demo/pull/4).
+T001 reconciled its stale proposal metadata and registry guidance. Preserve
+approved internal feeds for private/non-npm packages, lock integrity, and
+license reviews.
 
 Full application builds/tests, business coverage, public API contracts, SAST,
 secret scanning, Bicep validation, and deployment approvals do not exist yet.

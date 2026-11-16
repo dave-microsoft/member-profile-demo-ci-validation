@@ -4,14 +4,17 @@
 
 **Created**: 2026-11-16
 
-**Status**: Draft; product owner and tech lead review required
+**Status**: Approved for planning by the user as product owner and tech lead on 2026-11-16; design and security review pending
+
+**Approval scope**: On 2026-11-16, the user explicitly selected: "I am acting as product owner and tech lead and approve both specs for planning". This covers 002 Member Profile Demo and 003 Initial Application Projects for planning only; it does not authorize implementation or deployment or approve the proposed design.
 
 **Input**: User description: "I want to start the planning phase for the appicaltion. We need to create the specs."
 
 The first specification covers the complete initial demo: enrollment,
 verification, member and staff profile management, memberships, and membership
 change requests. The demo uses synthetic member data and simulated review
-handoffs. This is a proposed feature, not an implemented or approved system.
+handoffs. The feature specification is approved for planning, not an
+implemented system or an approved design.
 The [architecture overview](../../docs/architecture/member-profile-overview.md)
 provides context; the [constitution](../../.specify/memory/constitution.md)
 remains authoritative.
@@ -281,6 +284,8 @@ rejection as staff, and verify both the displayed outcomes and membership data.
   identity proofing; a real ticketing or review integration; other systems
   consuming member data; production membership business rules; member-facing
   audit history; and non-US data residency.
-- Product owner and tech lead review of this specification, plus applicable
-  security and privacy reviews, remain necessary. This draft and the approved
-  outline do not constitute approval to implement.
+- Product owner and tech lead specification approval for planning was recorded
+  on 2026-11-16 above. Design, security, and privacy reviews remain pending,
+  including identity-provider feasibility and privacy-safe audit references.
+  Planning approval does not authorize implementation or deployment or resolve
+  the open production decisions.
