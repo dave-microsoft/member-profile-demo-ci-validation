@@ -26,7 +26,9 @@ After publishing the workflows, inspect real Actions runs for documentation-only
 shared/configuration, synthetic application-only and infrastructure-only changes,
 and cross-domain renames/deletions. Do not merge synthetic project fixtures.
 
-Expected: both named checks start and finish; tooling runs once; affected absent
+Expected: both named checks start and finish; documentation-only changes skip
+npm entirely, while source/unit-test or supporting configuration changes run
+tooling once; affected absent
 project validation blocks rather than claiming success. Unknown synthetic
 package identities stop before public requests without printing their names.
 

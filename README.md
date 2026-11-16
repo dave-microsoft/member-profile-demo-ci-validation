@@ -127,7 +127,10 @@ changes. Their stable job names are **Application CI result** and
 observing their first hosted runs. Branch protections are not configured here.
 
 Application CI restores the reviewed public tooling tree, runs repository lint
-and tooling tests, and audits public dependencies for high/critical vulnerabilities.
+and tooling tests, and audits public dependencies only when `src/`, `tests/unit/`,
+or supporting build/dependency/CI configuration changes. Documentation-only and
+infrastructure-only changes receive a lightweight **not applicable** result
+without npm restore, lint/link checks, tests, or audit.
 Infrastructure CI independently reports Bicep-validation readiness. Missing
 Angular/.NET and Bicep checks are explicitly **not implemented**. Introducing
 domain files blocks the affected gate until approved executable validation is

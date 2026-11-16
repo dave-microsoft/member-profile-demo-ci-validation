@@ -17,6 +17,13 @@ is deferred. Requirements below describe proposed behavior, not existing pipelin
 
 ## Clarifications
 
+### Session 2026-11-16
+
+- User-directed CI latency correction: expensive code CI runs only for source,
+  unit tests, or supporting build/dependency/CI configuration changes. The user
+  selected a lightweight terminal check for unrelated changes rather than
+  workflow-level path filters. This supersedes documentation-only tooling execution.
+
 ### Session 2026-11-13
 
 - The user approved the CI-foundation scope as both product owner and tech lead
@@ -44,7 +51,7 @@ visible, and absent project checks are explicitly reported.
 1. **Given** a change affecting only application responsibilities, **When** CI evaluates it, **Then** application validation is selected independently of infrastructure validation and absent application projects are reported as not implemented.
 2. **Given** a change affecting only infrastructure responsibilities, **When** CI evaluates it, **Then** infrastructure validation is selected independently of application validation and absent infrastructure definitions are reported as not implemented.
 3. **Given** changes to shared contracts, tests, dependency declarations, or validation configuration, **When** CI evaluates them, **Then** every affected domain runs its available checks; a cross-domain change selects both domains.
-4. **Given** a documentation-only pull request, **When** CI completes, **Then** repository documentation checks run and required checks reach a terminal result rather than remaining pending because no workflow started.
+4. **Given** a documentation-only pull request, **When** CI completes, **Then** Application CI reports tooling as not applicable without dependency restore, lint/link checks, tests, or audit, and required checks reach a terminal result.
 5. **Given** an applicable repository-tooling check, **When** it fails or cannot execute, **Then** its result identifies failure or blockage and does not report success.
 
 ---
@@ -109,8 +116,8 @@ for an active deployment capability.
 
 - **FR-001**: CI MUST separate application and infrastructure validation into distinct workflows with independently identifiable responsibilities and results, consistent with the repository's established separation of application code under `src/` and infrastructure under `infra/`.
 - **FR-002**: Each domain MUST evaluate relevant changes, including shared code or contracts, tests, dependency declarations and lockfiles, and configuration affecting its checks. Changes affecting both domains MUST select both. Selection MUST account for additions, modifications, renames, and deletions.
-- **FR-003**: Documentation-only pull requests MUST run applicable repository-tooling checks. All required checks MUST reach a terminal result, including explicit non-applicability where appropriate, rather than remain pending due to change selection.
-- **FR-004**: CI MUST actually execute the existing `npm run lint` and `npm run test:tooling` checks for applicable repository changes. Their results MUST distinguish successful execution from failure or inability to execute; formatting checks MUST NOT rewrite files.
+- **FR-003**: Documentation-only pull requests MUST skip expensive application tooling and report it as not applicable. All required checks MUST reach a terminal result rather than remain pending due to change selection.
+- **FR-004**: CI MUST execute existing tooling only for source, unit tests, or supporting build/dependency/CI configuration changes. Other changes MUST NOT restore npm packages or run lint/link checks, tooling tests, or audit. Selected checks MUST distinguish execution success from failure; formatting MUST NOT rewrite files. Domain-readiness safeguards remain active independently.
 - **FR-005**: Results MUST identify unavailable application build/test and infrastructure-validation capabilities as "not implemented" with the missing prerequisite. An applicable unavailable check MUST NOT be represented as passed or as harmlessly non-applicable. Successful tooling checks MUST NOT imply these capabilities exist.
 - **FR-006**: Local npm retrieval MUST explicitly use `https://packagefeedproxy.microsoft.io/npm/`; GitHub Actions retrieval of public npm dependencies MUST explicitly use `https://registry.npmjs.org/`. Each environment MUST preserve the other's policy rather than making one global registry choice.
 - **FR-007**: Private dependencies and non-npm packages MUST use approved internal feeds in every environment. Feed failures MUST stop retrieval without fallback. Private package names, credentials, and contents MUST NOT reach the public registry, including through lockfile references or error reporting.
@@ -125,7 +132,7 @@ for an active deployment capability.
 ### Measurable Outcomes
 
 - **SC-001**: For representative application-only, infrastructure-only, shared, test, configuration, rename, and deletion changes, 100% of affected validation responsibilities are selected and separately identifiable (FR-001–FR-002).
-- **SC-002**: For documentation-only changes, 100% of applicable existing tooling checks execute and zero required checks remain pending solely because of change selection (FR-003–FR-004).
+- **SC-002**: Documentation-only changes execute zero npm commands and complete the lightweight check successfully; zero required checks remain pending solely because of change selection (FR-003–FR-004).
 - **SC-003**: In every evaluated missing-project, failed-check, and unavailable-access case, reviewers can distinguish executed checks from failed, blocked, non-applicable, and not-implemented checks; zero unavailable checks are presented as successful (FR-004–FR-005, FR-012).
 - **SC-004**: Across local, hosted, feed-failure, private-dependency, and mismatched-lockfile cases, 100% of dependency requests comply with the applicable environment policy or stop; zero fallbacks or disclosures to an unauthorized registry occur (FR-006–FR-007).
 - **SC-005**: Across trusted and untrusted invocation cases, zero deployment operations occur; untrusted validation receives zero secrets, privileged write permissions, or cloud access (FR-008–FR-009).

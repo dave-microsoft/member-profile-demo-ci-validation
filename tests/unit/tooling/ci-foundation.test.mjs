@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import {
   mkdirSync,
   mkdtempSync,
@@ -10,6 +10,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 import {
   changedPaths,
   readiness,
@@ -35,25 +36,73 @@ function packageFixture() {
   };
 }
 
-test("selects independent domains and conservative shared/configuration changes", () => {
-  for (const [paths, application, infrastructure] of [
-    [["src/frontend/new.ts"], true, false],
-    [["src/backend/New.cs"], true, false],
-    [["infra/main.bicep"], false, true],
-    [["src/shared/contract.json"], true, true],
-    [["tests/contract/example.json"], true, true],
-    [["package-lock.json"], true, true],
-    [[".github/workflows/application-ci.yml"], true, false],
-    [[".github/workflows/infrastructure-ci.yml"], false, true],
-    [[".github/scripts/ci-foundation.mjs"], true, true],
-    [["README.md", "specs/001-example/spec.md"], false, false],
+test("selects expensive tooling only for source, unit tests and supporting configuration", () => {
+  for (const [paths, application, infrastructure, tooling] of [
+    [["src/frontend/new.ts"], true, false, true],
+    [["src/backend/New.cs"], true, false, true],
+    [["tests/unit/tooling/new.test.mjs"], true, true, true],
+    [["infra/main.bicep"], false, true, false],
+    [["src/shared/contract.json"], true, true, true],
+    [["tests/contract/example.json"], true, true, false],
+    [["package-lock.json"], true, true, true],
+    [["Directory.Build.props"], true, true, true],
+    [[".github/workflows/application-ci.yml"], true, false, true],
+    [[".github/workflows/infrastructure-ci.yml"], false, true, false],
+    [[".github/scripts/ci-foundation.mjs"], true, true, true],
+    [["README.md", "specs/001-example/spec.md"], false, false, false],
+    [
+      ["docs/architecture/overview.md", ".github/agents/example.md"],
+      false,
+      false,
+      false,
+    ],
   ]) {
     assert.deepEqual(selectChanges(paths), {
       application,
       infrastructure,
-      tooling: true,
+      tooling,
     });
   }
+});
+
+test("documentation-only application invocation completes without reading packages or running npm", (t) => {
+  const root = mkdtempSync(join(tmpdir(), "ci-docs-only-"));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const git = (...args) =>
+    execFileSync("git", args, { cwd: root, encoding: "utf8" }).trim();
+  git("init", "--quiet");
+  git("config", "user.name", "Synthetic CI");
+  git("config", "user.email", "synthetic@example.invalid");
+  writeFileSync(join(root, "README.md"), "baseline");
+  git("add", ".");
+  git("commit", "--quiet", "-m", "baseline");
+  const base = git("rev-parse", "HEAD");
+  writeFileSync(join(root, "README.md"), "documentation-only change");
+  git("commit", "--quiet", "-am", "docs");
+  const result = spawnSync(
+    process.execPath,
+    [
+      fileURLToPath(
+        new URL("../../../.github/scripts/ci-foundation.mjs", import.meta.url),
+      ),
+      "application",
+    ],
+    {
+      cwd: root,
+      encoding: "utf8",
+      timeout: 10000,
+      env: {
+        ...process.env,
+        CI_EVENT: "pull_request",
+        CI_BASE_SHA: base,
+        CI_HEAD_SHA: git("rev-parse", "HEAD"),
+        GITHUB_STEP_SUMMARY: "",
+      },
+    },
+  );
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.match(result.stdout, /not applicable/);
+  assert.doesNotMatch(result.stdout, /audit: \*\*passed|added \d+ packages/);
 });
 
 test("compares Git changes including old and new names for a cross-domain rename", (t) => {

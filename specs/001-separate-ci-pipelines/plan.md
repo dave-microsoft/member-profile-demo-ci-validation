@@ -39,7 +39,10 @@ repository checks. Actual Actions execution remains a separate validation step.
 
 **Project Type**: Repository CI tooling, not an application scaffold.
 
-**Performance Goals**: Run existing tooling once per event, not once per domain.
+**Performance Goals**: Run existing tooling once only for source/unit-test or
+supporting configuration changes. Unrelated changes complete a lightweight check
+without dependency restore, lint/link checks, tests, or audit (user-directed
+2026-11-16 refinement). Preserve independent domain-readiness reporting.
 No application load or latency claims apply.
 
 **Constraints**: Public npm in Actions only; internal npm locally; no secrets,

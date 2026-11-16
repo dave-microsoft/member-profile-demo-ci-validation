@@ -29,7 +29,16 @@ export function selectChanges(paths) {
       infrastructure = true;
     }
   }
-  return { application, infrastructure, tooling: true };
+  const tooling = paths.some(
+    (path) =>
+      path.startsWith("src/") ||
+      path.startsWith("tests/unit/") ||
+      path.startsWith(".github/scripts/") ||
+      path.startsWith(".github/ci/") ||
+      path === ".github/workflows/application-ci.yml" ||
+      (!path.includes("/") && !path.endsWith(".md") && path !== "LICENSE"),
+  );
+  return { application, infrastructure, tooling };
 }
 
 function git(args) {
@@ -239,10 +248,16 @@ function main(domain) {
     report(
       "SAST and secret scanning: **not implemented by these workflows**; required separately. Tooling success is not release approval.",
     );
-    runTooling(readPackages());
-    report(
-      "Repository lint, tooling tests and public-dependency audit: **passed**.",
-    );
+    if (selectChanges(paths).tooling) {
+      runTooling(readPackages());
+      report(
+        "Repository lint, tooling tests and public-dependency audit: **passed**.",
+      );
+    } else {
+      report(
+        "Repository tooling: **not applicable**. No source, unit-test, or supporting configuration changes; skipping dependency restore, lint, tests and audit.",
+      );
+    }
   }
   if (capability.blocked) {
     throw new Error(
