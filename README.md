@@ -58,9 +58,10 @@ application code, install application dependencies, deploy, or self-approve.
 
 The current member-profile design is a proposal and is maintained in the
 [architecture overview](docs/architecture/member-profile-overview.md) and
-[design review](docs/architecture/design-review.md). Both documents separate
-confirmed requirements from open decisions; neither represents an approved or
-implemented system.
+[design review](docs/architecture/design-review.md), with Azure hosting and
+data details in the [infrastructure design](docs/architecture/azure-infrastructure.md).
+These documents separate confirmed requirements from open decisions; none
+represents an approved or implemented system.
 
 The [initial demo specification](specs/002-member-profile-demo/spec.md) is a
 draft awaiting product owner and tech lead review.
