@@ -11,22 +11,23 @@ For current requirements and the conceptual system boundary, see the
 
 ### API hosting
 
-The backend must use C#/.NET 11. A single API is the simplest starting point;
-there is no current requirement for microservices, a message broker, or
-independent service deployment.
+The backend uses C#/.NET 11. The current working choice is Azure Container
+Apps; the Angular web UI is also planned as a separate Container App. Each
+environment has its own Container Apps Environment. This keeps the initial
+design on the simplest one-API architecture; there is no requirement for
+microservices or independent business services.
 
-| Option                           | Benefits                                                                                                                                                                                                      | Trade-offs and validation                                                                                                                                                                                                                           |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Azure Functions Flex Consumption | Managed serverless hosting; supports .NET 11, VNet integration, and optional always-ready instances. Its execution-based model is a candidate for uncertain or intermittent demand and a cost-conscious demo. | HTTP API suitability, startup behavior, operational diagnostics, API authorization, and p95 latency must be tested. Always-ready capacity reduces cold starts but changes cost. Validate private SQL connectivity and the required recovery design. |
-| Azure Container Apps             | Managed container hosting suited to API endpoints; supports container revisions and scaling, including scale-to-zero for many workloads. It accommodates a conventional ASP.NET Core API deployment.          | Requires a container image and its build, registry, and revision lifecycle. Minimum replicas and regional standby affect cost. Validate VNet design, scaling, warm-up, and recovery behavior.                                                       |
+| Direction                                                 | Benefits                                                                                                                                                                                                              | Trade-offs and validation                                                                                                                                                                 |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Separate Azure Container Apps for Angular UI and .NET API | Supports the conventional containerized API preference, direct browser-to-API access, and environment-specific deployment. The landing zone supplies networking; the shared registry avoids an application-owned ACR. | Requires image build/promotion and ACR access. Public ingress is exposed without the future WAF. Validate cold starts, CORS, authentication, private SQL access, and production recovery. |
 
-**Review position:** Keep both viable until expected peak load, availability,
-operations ownership, and cost constraints are clearer. A small, measured
-prototype can compare startup, p95 latency, private SQL access, and operational
-effort without committing to production infrastructure.
+**Review position:** Container Apps is the working hosting choice, not a
+deployed or fully approved decision. Scale UI and API to zero to reduce idle
+cost for synthetic-data environments; validate startup behavior against the
+eventual production latency target and expected peak load.
 
-Official references: [Functions Flex Consumption](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan)
-and [Azure Container Apps overview](https://learn.microsoft.com/en-us/azure/container-apps/overview).
+See the [Azure hosting and data infrastructure design](azure-infrastructure.md)
+for the proposed topology and landing-zone integration boundary.
 
 ### Member identity and enrollment
 
@@ -88,11 +89,17 @@ residency.
 
 ### Database recovery and regions
 
-Microsoft documents North Central US as paired with South Central US. A
-paired-region database replica or Azure SQL failover group is a candidate for
-the production recovery target. Geo-replication introduces cost and can involve
-replication lag; the permitted data loss must be verified under the selected
-configuration.
+Microsoft documents North Central US as paired with South Central US. For the
+synthetic-data phase, SQL serverless auto-pause is selected to reduce idle
+cost, and recovery may reset a known seed dataset even if it takes longer than
+two hours.
+
+This differs from the eventual production target: SQL serverless auto-pause
+cannot be combined with active geo-replication or failover groups. A production
+SQL tier, backup redundancy, and regional recovery design must be selected and
+tested before real-data use. Geo-restore can take minutes or hours and does
+not itself guarantee the two-hour application RTO/RPO. See the [Azure hosting
+and data infrastructure design](azure-infrastructure.md).
 
 The two-hour targets apply to the entire application, including application
 hosting, frontend delivery, traffic routing, identity dependencies, network
@@ -117,22 +124,25 @@ and [Azure SQL business continuity guidance](https://learn.microsoft.com/en-us/a
 
 ## Open questions and required reviews
 
-| Topic                            | Current state                                                                                   | Needed to close                                                                                                                                             |
-| -------------------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| API hosting                      | Functions Flex Consumption and Container Apps remain candidates.                                | Expected traffic, p95 measurements, operations ownership, and cost comparison.                                                                              |
-| Frontend hosting and public edge | Not selected.                                                                                   | Confirm delivery, custom-domain, identity redirect, availability, and security needs, then compare supported hosting options.                               |
-| Member identity                  | Passwordless email one-time code requested; Entra External ID is only a candidate.              | Verify exact supported passwordless flow, configuration, cost, lifecycle, and data location.                                                                |
-| Profile claim and enrollment     | Staff verification required; enrollment may claim an existing or create a new profile.          | Define production evidence, staff verification steps, duplicate handling, and contested-claim process.                                                      |
-| Contact and identity email       | Email is both profile contact data and a likely sign-in identifier.                             | Decide whether changing contact email changes login identity and specify re-verification behavior.                                                          |
-| Membership model                 | Multiple memberships, generated numbers, type/status/dates, and historical retention confirmed. | Define type/status values, date rules, number format, and allowed member-request operations.                                                                |
-| Review integration               | Ticketing handoff simulated initially; real system unknown.                                     | Decide production ticketing platform, status synchronization, failure handling, and who records outcomes.                                                   |
-| API consumers                    | Web application first; other consumers anticipated.                                             | Identify future consumer trust boundaries and token/authorization model before external onboarding.                                                         |
-| Scale and performance            | Unknown.                                                                                        | Estimate profile count, peak traffic, and load shape; validate the constitutional latency target.                                                           |
-| Availability and operations      | Availability target and operator are undecided.                                                 | Identify service owner, support expectations, and availability objective.                                                                                   |
-| Recovery                         | Production RTO and RPO are each roughly two hours; paired US region is acceptable.              | Confirm approved region/service availability, tier, failover process, full-stack runbooks, and test evidence.                                               |
-| Privacy and retention            | Inactive profiles retained; retention duration open. DOB collected; minor-member scope unknown. | Privacy/legal review for retention, minors, deletion rights, and future international requirements.                                                         |
-| Residency                        | Initial US-only; eventual non-US residence may be needed.                                       | Current constitution is US-only. Obtain required governance and security approval before changing that constraint or deploying outside approved US regions. |
-| Cost                             | Budget undecided; optimization is a priority.                                                   | Establish budget guardrails and compare full lifecycle and recovery costs.                                                                                  |
+| Topic                        | Current state                                                                                                                     | Needed to close                                                                                                                                             |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API and UI hosting           | Separate UI/API Container Apps, one Container Apps Environment per application stage. Use the shared ACR and generated hostnames. | Validate generated-hostname identity redirects, CORS, image promotion, cold starts, and the production p95 target.                                          |
+| Public edge                  | Direct public HTTPS ingress without a managed WAF in the initial synthetic-data phase.                                            | Decide WAF, custom domain, DNS, identity redirect URIs, and the security gate for real-data use.                                                            |
+| Member identity              | Passwordless email one-time code requested; Entra External ID is only a candidate.                                                | Verify exact supported passwordless flow, configuration, cost, lifecycle, and data location.                                                                |
+| Profile claim and enrollment | Staff verification required; enrollment may claim an existing or create a new profile.                                            | Define production evidence, staff verification steps, duplicate handling, and contested-claim process.                                                      |
+| Contact and identity email   | Email is both profile contact data and a likely sign-in identifier.                                                               | Decide whether changing contact email changes login identity and specify re-verification behavior.                                                          |
+| Membership model             | Multiple memberships, generated numbers, type/status/dates, and historical retention confirmed.                                   | Define type/status values, date rules, number format, and allowed member-request operations.                                                                |
+| Review integration           | Ticketing handoff simulated initially; real system unknown.                                                                       | Decide production ticketing platform, status synchronization, failure handling, and who records outcomes.                                                   |
+| API consumers                | Web application first; other consumers anticipated.                                                                               | Identify future consumer trust boundaries and token/authorization model before external onboarding.                                                         |
+| Scale and performance        | Unknown.                                                                                                                          | Estimate profile count, peak traffic, and load shape; validate the constitutional latency target.                                                           |
+| Availability and operations  | Availability target and operator are undecided.                                                                                   | Identify service owner, support expectations, and availability objective.                                                                                   |
+| Recovery                     | Production RTO and RPO are each roughly two hours; paired US region is acceptable.                                                | Confirm approved region/service availability, tier, failover process, full-stack runbooks, and test evidence.                                               |
+| SQL idle cost and recovery   | Serverless SQL auto-pause across environments; demo recovery can reseed synthetic data and exceed two hours.                      | Select and exercise a production SQL/recovery configuration; serverless auto-pause conflicts with continuous geo-replication.                               |
+| Landing-zone boundary        | Landing zone provides network, DNS, shared ACR, and SQL/queue private endpoints.                                                  | Confirm subnet capacity, egress, RBAC, private DNS integration, and who provisions each dependency in the deployment sequence.                              |
+| Audit event buffer           | Azure Storage Queue; retain until central API acknowledgment; central API deduplicates by event ID; alert after three hours.      | Define cross-store outcome reconciliation, poison-message handling, queue redundancy, monitoring, and central API contract.                                 |
+| Privacy and retention        | Inactive profiles retained; retention duration open. DOB collected; minor-member scope unknown.                                   | Privacy/legal review for retention, minors, deletion rights, and future international requirements.                                                         |
+| Residency                    | Initial US-only; eventual non-US residence may be needed.                                                                         | Current constitution is US-only. Obtain required governance and security approval before changing that constraint or deploying outside approved US regions. |
+| Cost                         | Budget undecided; optimization is a priority.                                                                                     | Establish budget guardrails and compare full lifecycle and recovery costs.                                                                                  |
 
 ## Review status
 

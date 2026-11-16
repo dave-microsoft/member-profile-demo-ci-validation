@@ -24,6 +24,11 @@ service access, private data-service endpoints, approved US-region residency,
 auditing for state changes, and p95 API latency below 300 ms at an agreed peak
 load.
 
+The current hosting proposal uses separate Azure Container Apps for the web UI
+and API. See the [Azure hosting and data infrastructure design](azure-infrastructure.md)
+for per-environment resources, landing-zone responsibilities, and recovery
+trade-offs.
+
 ## Confirmed requirements
 
 | Area                           | Requirement                                                                                                                                                                                                                                                               |
@@ -105,36 +110,53 @@ members are in scope.
 
 ### API, data access, and operations
 
-The API is the authorization and business-logic boundary for both the Angular
-application and future consumers. Public API contracts must be versioned. The
-authentication and authorization model for future non-browser consumers is
-open; do not assume browser tokens or introduce API keys.
+The Angular UI and .NET 11 API are proposed as separate Azure Container Apps in
+separate development, test, and production Container Apps Environments. The
+browser calls the API directly through public HTTPS ingress using generated
+Container Apps hostnames initially. The API is the authorization and
+business-logic boundary for both the Angular application and future consumers.
+Public API contracts must be versioned. The authentication and authorization
+model for future non-browser consumers is open; do not assume browser tokens
+or introduce API keys. The initial phase uses synthetic data and does not
+include a managed WAF.
 
-Azure SQL is the proposed system of record. The API should connect using a
-managed identity over private networking. The SQL service must use a private
-endpoint with public network access disabled. Encrypt data in transit and at
-rest; determine customer-managed key needs during data-classification and
-security review.
+Azure SQL is the proposed system of record. Application infrastructure creates
+one SQL server and database per environment. The synthetic-data phase uses
+serverless compute with auto-pause to reduce idle cost. The API connects using
+a managed identity over private networking. The SQL service must use a private
+endpoint with public network access disabled; the landing-zone team owns the
+private endpoint and DNS integration. Encrypt data in transit and at rest;
+determine customer-managed key needs during data-classification and security
+review.
 
-State-changing requests must emit structured audit events and use correlation
-IDs. Application Insights telemetry must not contain profile values or other
-PII; local authentication for telemetry ingestion remains disabled per the
+State-changing requests must emit structured audit events with who changed
+what, when, and the outcome. The application uses a separate Azure Storage
+Queue as a proposed temporary buffer and sends events to the organization's
+central audit API with a managed identity. Retain each message until the
+central API confirms receipt; alert when delivery takes more than three hours.
+If the queue cannot durably retain the event, block the profile change. The
+landing-zone team owns private endpoint and DNS integration for the queue.
+Application Insights telemetry must not contain profile values or other PII;
+local authentication for telemetry ingestion remains disabled per the
 constitution. Errors returned to clients must not expose stack traces.
 
 ## Production recovery and residency
 
-South Central US is the preferred primary region. Microsoft documents North
+South Central US is the preferred initial region. Microsoft documents North
 Central US as its paired region, and paired-region recovery is acceptable in
-principle. An Azure SQL failover group is a candidate for database recovery, not
-a complete application recovery design. The production plan must also cover the
-web application, API hosting, network and ingress, identity dependencies,
-operational access, and recovery procedures.
+principle. For the synthetic-data phase, recovery may restore a known seed
+dataset, and taking longer than two hours is temporarily acceptable. The
+eventual production design retains the roughly two-hour RTO and RPO target.
 
-The roughly two-hour recovery time objective and recovery point objective apply
-to the eventual production application, not just SQL. They must be demonstrated
-through end-to-end recovery exercises at the selected service tiers and
-configuration. Availability targets and expected peak load are still unknown;
-the p95 latency objective cannot be evaluated against an invented load.
+The demo's serverless SQL auto-pause configuration conflicts with continuous
+regional geo-replication: active geo-replication and failover groups prevent
+auto-pause. Therefore, this demo configuration does not demonstrate the
+eventual production recovery objective. Production recovery must cover the
+web application, API, database, network and ingress, registry, identity
+dependencies, operational access, and recovery procedures. Validate RTO/RPO
+through end-to-end exercises. Availability targets and expected peak load are
+still unknown; the p95 latency objective cannot be evaluated against an
+invented load.
 
 The current constitution limits data residency to approved US regions. Future
 non-US data residency is an expressed possibility, not part of the current
@@ -143,21 +165,22 @@ the constitution's US-only constraint requires its amendment process.
 
 ## Well-Architected review snapshot
 
-| Pillar                 | Current design direction                                                                                                                                                      | Evidence or open concern                                                                                                                          |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Security               | Entra identities, group-based staff access, API-side authorization, verified profile linking, managed identities, private SQL access, and PII-minimizing audit and telemetry. | The member identity provider and production account-claim process need review. Date of birth is sensitive data; minor-member handling is unknown. |
-| Reliability            | Plan paired-region recovery for the full application and SQL.                                                                                                                 | The two-hour RTO/RPO is a target to test, not a guarantee from one service. Availability target and operating ownership are open.                 |
-| Performance efficiency | Keep the API stateless where practical and evaluate it against the required p95 target.                                                                                       | Expected peak load and profile volume are unknown, so sizing and latency validation are pending.                                                  |
-| Cost optimization      | Prefer a simple deployment and compare serverless and container hosting; consider active/passive recovery before active/active.                                               | Budget, availability requirement, and usage profile are unknown. No cost estimate is justified yet.                                               |
-| Operational excellence | Deploy infrastructure through Bicep and pipelines; use structured telemetry, audit events, and recovery runbooks.                                                             | Application operations ownership and support model are undecided.                                                                                 |
+| Pillar                 | Current design direction                                                                                                                                                                | Evidence or open concern                                                                                                                                                                     |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Security               | Entra identities, group-based staff access, API-side authorization, verified profile linking, managed identities, private SQL and queue access, and PII-minimizing audit and telemetry. | The initial UI and API are public without the future WAF; keep synthetic data only. The member identity provider, account-claim process, and real-data security gate need review.            |
+| Reliability            | Keep environments isolated; retain audit events until central acknowledgment; plan eventual paired-region recovery for the full application.                                            | Demo recovery can reset the seed dataset and take longer than two hours. Serverless SQL auto-pause conflicts with continuous geo-replication, so production RTO/RPO is not yet demonstrated. |
+| Performance efficiency | Run UI, API, and audit processing on Container Apps and use SQL serverless auto-pause for the synthetic-data phase.                                                                     | Scale-to-zero and database resume delay the first request. Expected peak load and profile volume are unknown, so p95 sizing and validation remain pending.                                   |
+| Cost optimization      | Prefer scale-to-zero containers and SQL auto-pause across environments; use a shared registry and queue-based audit delivery.                                                           | Production recovery and telemetry retention can add cost. Budget and usage profile are unknown.                                                                                              |
+| Operational excellence | Deploy application resources with Bicep; use per-environment telemetry workspaces, central audit delivery, and recovery runbooks.                                                       | Landing-zone integration, audit replay, operations ownership, and production recovery exercises remain open.                                                                                 |
 
 ## Open decisions
 
-See the [design review](design-review.md) for options and review prompts. Major
-open items include API and frontend hosting, exact member identity flow,
-enrollment verification details, membership types and statuses, ticketing
-integration, API consumer authorization, expected load, availability, budget,
-retention, minor-member handling, and international residency.
+See the [design review](design-review.md) and [Azure infrastructure design](azure-infrastructure.md)
+for options and review prompts. Major open items include member identity
+configuration, secure enrollment verification, membership types and statuses,
+ticketing integration, future API consumer authorization, expected load,
+availability, budget, retention, minor-member handling, international
+residency, queue failure reconciliation, and production recovery.
 
 ## References
 
